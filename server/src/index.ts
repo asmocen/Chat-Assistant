@@ -1,0 +1,41 @@
+import 'dotenv/config';
+import cors from 'cors';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import { chatRouter } from './routes/chat.js';
+
+const PORT = Number(process.env.PORT) || 3001;
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+
+const app = express();
+
+app.use(
+  cors({
+    origin: CLIENT_ORIGIN,
+    credentials: true,
+  }),
+);
+app.use(express.json({ limit: '2mb' }));
+
+const limiter = rateLimit({
+  windowMs: 60_000,
+  max: Number(process.env.MAX_REQUESTS_PER_MINUTE) || 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: '请求过于频繁，请稍后再试（成本控制限流）' },
+});
+
+app.use('/api/chat', limiter);
+app.use('/api', chatRouter);
+
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    hasApiKey: Boolean(process.env.OPENAI_API_KEY),
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
