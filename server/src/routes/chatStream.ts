@@ -47,22 +47,27 @@ chatStreamRouter.post('/chat/stream', authMiddleware, async (req, res) => {
     });
 
     let fullReply = '';
-    for await (const chunk of streamLlm({
+    const stream = streamLlm({
       text: text.trim(),
       history,
       username: req.user!.username,
       imageUrl,
       imageBase64: imageUrl ? undefined : imageBase64,
       skipImage,
-    })) {
-      fullReply += chunk;
-      sendSse(res, 'chunk', { text: chunk });
-    }
-
-    sendSse(res, 'done', {
-      reply: fullReply.trim() || '抱歉，我暂时无法回答。',
-      usage: { total_tokens: undefined },
     });
+
+    while (true) {
+      const { value, done } = await stream.next();
+      if (done) {
+        sendSse(res, 'done', {
+          reply: fullReply.trim() || '抱歉，我暂时无法回答。',
+          usage: value ?? { total_tokens: undefined },
+        });
+        break;
+      }
+      fullReply += value;
+      sendSse(res, 'chunk', { text: value });
+    }
     res.end();
   } catch (err) {
     console.error('Stream error:', err);

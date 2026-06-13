@@ -1,5 +1,10 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cors from 'cors';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+config({ path: path.resolve(__dirname, '../../.env') });
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { authRouter } from './routes/auth.js';
@@ -42,4 +47,7 @@ app.get('/api/health', (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
+  console.log(
+    `LLM: ${process.env.OPENAI_MODEL || 'qwen-vl-plus'}, API Key: ${process.env.OPENAI_API_KEY ? '已配置' : '未配置'}`,
+  );
 });

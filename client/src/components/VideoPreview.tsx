@@ -1,11 +1,22 @@
 interface VideoPreviewProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   isActive: boolean;
+  isStarting?: boolean;
   isListening: boolean;
   interimText: string;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
-export function VideoPreview({ videoRef, isActive, isListening, interimText }: VideoPreviewProps) {
+export function VideoPreview({
+  videoRef,
+  isActive,
+  isStarting,
+  isListening,
+  interimText,
+  error,
+  onRetry,
+}: VideoPreviewProps) {
   return (
     <div className="video-panel">
       <div className="video-wrap">
@@ -13,10 +24,23 @@ export function VideoPreview({ videoRef, isActive, isListening, interimText }: V
         {!isActive && (
           <div className="video-placeholder">
             <span className="placeholder-icon">📷</span>
-            <p>点击下方按钮开启摄像头</p>
+            {isStarting ? (
+              <p>正在请求摄像头权限…</p>
+            ) : error ? (
+              <>
+                <p className="video-error-text">{error}</p>
+                {onRetry && (
+                  <button type="button" className="btn primary video-retry-btn" onClick={onRetry}>
+                    重新授权
+                  </button>
+                )}
+              </>
+            ) : (
+              <p>点击「开始对话」开启摄像头</p>
+            )}
           </div>
         )}
-        {isListening && <div className="listening-pulse" aria-label="正在聆听" />}
+        {isActive && isListening && <div className="listening-pulse" aria-label="正在聆听" />}
       </div>
       {interimText && (
         <div className="interim-bar">

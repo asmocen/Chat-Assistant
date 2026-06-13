@@ -92,29 +92,30 @@
 }
 
 .app-main {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   flex: 1;
   min-height: 0;
   padding: 16px 0;
 }
 
-.avatar-chat-column {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 0;
+.media-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
 .avatar-panel {
-  flex-shrink: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  aspect-ratio: 4 / 3;
 }
 
 .avatar-fallback,
@@ -193,13 +194,13 @@
   max-width: 100%;
 }
 
-.avatar-chat-column .chat-panel {
+.app-main > .chat-panel {
   flex: 1;
   min-height: 0;
 }
 
 @media (max-width: 768px) {
-  .app-main {
+  .media-row {
     grid-template-columns: 1fr;
   }
 }
@@ -242,6 +243,21 @@
 .placeholder-icon {
   font-size: 2.5rem;
   opacity: 0.5;
+}
+
+.video-error-text {
+  font-size: 0.82rem;
+  color: var(--danger);
+  text-align: center;
+  padding: 0 16px;
+  line-height: 1.45;
+  max-width: 280px;
+}
+
+.video-retry-btn {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  padding: 8px 16px;
 }
 
 .listening-pulse {

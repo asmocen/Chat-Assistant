@@ -15,7 +15,8 @@ import '../App.css';
 export default function ChatPage() {
   const { username, logout } = useAuth();
   const navigate = useNavigate();
-  const { videoRef, error: mediaError, isActive, start: startMedia, stop: stopMedia } = useMediaStream();
+  const { videoRef, error: mediaError, isActive, isStarting, start: startMedia, stop: stopMedia } =
+    useMediaStream();
   const { isSpeaking, enabled: ttsEnabled, setEnabled: setTtsEnabled, speak, cancel: cancelSpeak } =
     useSpeechSynthesis();
 
@@ -127,9 +128,11 @@ export default function ChatPage() {
     useSpeechRecognition(handleUserInput);
 
   const startSession = async () => {
-    await startMedia();
-    setSessionActive(true);
-    startListen();
+    const ok = await startMedia();
+    if (ok) {
+      setSessionActive(true);
+      startListen();
+    }
   };
 
   const stopSession = () => {
@@ -207,22 +210,25 @@ export default function ChatPage() {
       )}
 
       <main className="app-main">
-        <VideoPreview
-          videoRef={videoRef}
-          isActive={isActive}
-          isListening={isListening}
-          interimText={interimText}
-        />
-        <div className="avatar-chat-column">
+        <div className="media-row">
           <AvatarPanel state={avatarState} mode={avatarMode} />
-          <ChatPanel
-            messages={messages}
-            isLoading={isLoading && !streamingText}
-            streamingText={streamingText}
-            lastTokenUsage={lastTokenUsage}
-            lastSentImage={lastSentImage}
+          <VideoPreview
+            videoRef={videoRef}
+            isActive={isActive}
+            isStarting={isStarting}
+            isListening={isListening}
+            interimText={interimText}
+            error={mediaError}
+            onRetry={startSession}
           />
         </div>
+        <ChatPanel
+          messages={messages}
+          isLoading={isLoading && !streamingText}
+          streamingText={streamingText}
+          lastTokenUsage={lastTokenUsage}
+          lastSentImage={lastSentImage}
+        />
       </main>
 
       <footer className="input-bar">

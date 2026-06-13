@@ -49,7 +49,8 @@ export function StatusBar({
       </div>
       <div className="status-item muted cost">
         请求 {requestCount} 次 · {totalTokens} tokens
-        {kodoHit !== undefined && ` · Kodo ${kodoHit ? '命中' : '未中'}`}
+        {kodoHit === true && ' · Kodo 命中'}
+        {kodoHit === false && ' · Kodo 未接入'}
         {semanticHit !== undefined && semanticHit && ' · 语义命中'}
       </div>
     </div>

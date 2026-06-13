@@ -111,7 +111,7 @@ export async function* streamLlm(params: {
   imageUrl?: string | null;
   imageBase64?: string;
   skipImage?: boolean;
-}): AsyncGenerator<string> {
+}): AsyncGenerator<string, { total_tokens?: number } | undefined> {
   const { apiKey, baseUrl, model } = getLlmConfig();
   if (!apiKey) throw new Error('未配置 OPENAI_API_KEY');
 
@@ -139,6 +139,7 @@ export async function* streamLlm(params: {
       max_tokens: 300,
       temperature: 0.7,
       stream: true,
+      stream_options: { include_usage: true },
     }),
   });
 
@@ -150,6 +151,7 @@ export async function* streamLlm(params: {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  let usage: { total_tokens?: number } | undefined;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -162,11 +164,13 @@ export async function* streamLlm(params: {
       const trimmed = line.trim();
       if (!trimmed.startsWith('data:')) continue;
       const payload = trimmed.slice(5).trim();
-      if (payload === '[DONE]') return;
+      if (payload === '[DONE]') continue;
       try {
         const json = JSON.parse(payload) as {
           choices?: Array<{ delta?: { content?: string } }>;
+          usage?: { total_tokens?: number };
         };
+        if (json.usage) usage = json.usage;
         const chunk = json.choices?.[0]?.delta?.content;
         if (chunk) yield chunk;
       } catch {
@@ -174,4 +178,6 @@ export async function* streamLlm(params: {
       }
     }
   }
+
+  return usage;
 }
