@@ -33,7 +33,8 @@ export default function ChatPage() {
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
   const [model, setModel] = useState('qwen-vl-plus');
   const [sessionActive, setSessionActive] = useState(false);
-  const [avatarMode, setAvatarMode] = useState<'fallback' | 'live2d'>('fallback');
+  // TODO: 后续启用 Pixi Live2D 四态模式时恢复 avatarMode 与 Header 开关
+  // const [avatarMode, setAvatarMode] = useState<'fallback' | 'live2d'>('fallback');
   const [welcomed, setWelcomed] = useState(false);
 
   const lastFrameRef = useRef<string | null>(null);
@@ -171,6 +172,7 @@ export default function ChatPage() {
           <p className="subtitle">视觉对话助手 · {username}</p>
         </div>
         <div className="header-actions">
+          {/* TODO: 后续启用 Pixi Live2D 时取消注释
           <label className="toggle">
             <input
               type="checkbox"
@@ -179,6 +181,7 @@ export default function ChatPage() {
             />
             Live2D
           </label>
+          */}
           <label className="toggle">
             <input
               type="checkbox"
@@ -211,7 +214,7 @@ export default function ChatPage() {
 
       <main className="app-main">
         <div className="media-row">
-          <AvatarPanel state={avatarState} mode={avatarMode} />
+          <AvatarPanel state={avatarState} mode="fallback" />
           <VideoPreview
             videoRef={videoRef}
             isActive={isActive}

@@ -27,6 +27,7 @@
 | [docs/QINIU_SETUP.md](docs/QINIU_SETUP.md) | 七牛云从 0 搭建 |
 | [docs/DESIGN.md](docs/DESIGN.md) | 技术设计与用户故事 |
 | [docs/WORK_DIVISION.md](docs/WORK_DIVISION.md) | 两人三天分工 |
+| [docs/SYNC.md](docs/SYNC.md) | 本地与 GitHub 同步 |
 
 ## 快速开始
 

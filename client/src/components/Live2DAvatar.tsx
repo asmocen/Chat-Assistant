@@ -1,63 +1,188 @@
 import { useEffect, useRef, useState } from 'react';
-import { AvatarFallback, type AvatarState } from './AvatarFallback';
+import {
+  AVATAR_IMAGES,
+  AVATAR_STATES,
+  type AvatarState,
+} from '../lib/avatarAssets';
+import { AvatarFallback } from './AvatarFallback';
 
-const MODEL_URL =
-  'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json';
+// TODO: 当前未启用；由 AvatarPanel 统一走 Fallback，后续恢复 Pixi 渲染时继续使用本组件
+
+const CANVAS_W = 360;
+const CANVAS_H = 270;
+const CROSSFADE_MS = 200;
 
 interface Live2DAvatarProps {
   state: AvatarState;
 }
 
+const STATE_LABELS: Record<AvatarState, string> = {
+  idle: '待机中',
+  listening: '正在听…',
+  thinking: '思考中…',
+  speaking: '说话中…',
+};
+
+function fitSprite(sprite: import('pixi.js').Sprite): number {
+  const tex = sprite.texture;
+  const scale = Math.min((CANVAS_W * 0.92) / tex.width, (CANVAS_H * 0.92) / tex.height, 1);
+  sprite.scale.set(scale);
+  sprite.anchor.set(0.5, 0.5);
+  sprite.position.set(CANVAS_W / 2, CANVAS_H / 2 + 8);
+  return scale;
+}
+
+function applyStateMotion(
+  sprite: import('pixi.js').Sprite,
+  avatarState: AvatarState,
+  t: number,
+  baseScale: number,
+): void {
+  const cx = CANVAS_W / 2;
+  const cy = CANVAS_H / 2 + 8;
+
+  switch (avatarState) {
+    case 'idle': {
+      const breath = 1 + Math.sin(t * 2) * 0.02;
+      sprite.scale.set(baseScale, baseScale * breath);
+      sprite.rotation = 0;
+      sprite.position.set(cx, cy);
+      break;
+    }
+    case 'listening':
+      sprite.scale.set(baseScale * 1.03);
+      sprite.rotation = 0;
+      sprite.position.set(cx, cy - 4);
+      break;
+    case 'thinking':
+      sprite.scale.set(baseScale);
+      sprite.rotation = Math.sin(t * 1.5) * 0.02;
+      sprite.position.set(cx, cy);
+      break;
+    case 'speaking': {
+      const bounce = 1 + Math.sin(t * 8) * 0.04;
+      sprite.scale.set(baseScale * bounce);
+      sprite.rotation = 0;
+      sprite.position.set(cx, cy);
+      break;
+    }
+  }
+}
+
 export function Live2DAvatar({ state }: Live2DAvatarProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [failed, setFailed] = useState(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const swapRef = useRef<((next: AvatarState) => Promise<void>) | null>(null);
 
   useEffect(() => {
     let destroyed = false;
     let app: import('pixi.js').Application | null = null;
+    let spriteA: import('pixi.js').Sprite | null = null;
+    let spriteB: import('pixi.js').Sprite | null = null;
+    let activeIsA = true;
+    let baseScale = 0.35;
+    let fading = false;
+    let fadeStart = 0;
+    let fadeOut: import('pixi.js').Sprite | null = null;
+    let fadeIn: import('pixi.js').Sprite | null = null;
+    const textures = new Map<AvatarState, import('pixi.js').Texture>();
+
+    const getActive = () => (activeIsA ? spriteA : spriteB)!;
+    const getInactive = () => (activeIsA ? spriteB : spriteA)!;
+
+    const loadTexture = async (PIXI: typeof import('pixi.js'), s: AvatarState) => {
+      let tex = textures.get(s);
+      if (tex) return tex;
+      tex = PIXI.Texture.from(AVATAR_IMAGES[s]);
+      if (!tex.valid) {
+        await new Promise<void>((resolve, reject) => {
+          tex!.baseTexture.once('loaded', () => resolve());
+          tex!.baseTexture.once('error', reject);
+        });
+      }
+      if (destroyed) throw new Error('destroyed');
+      textures.set(s, tex);
+      return tex;
+    };
+
+    swapRef.current = async (next: AvatarState) => {
+      if (!spriteA || !spriteB || destroyed) return;
+
+      const PIXI = await import('pixi.js');
+      const tex = await loadTexture(PIXI, next);
+      const active = getActive();
+      if (active.texture === tex && active.alpha > 0.9) return;
+
+      const inactive = getInactive();
+      inactive.texture = tex;
+      baseScale = fitSprite(inactive);
+      inactive.alpha = 0;
+
+      fadeOut = active;
+      fadeIn = inactive;
+      fading = true;
+      fadeStart = performance.now();
+      activeIsA = !activeIsA;
+    };
 
     (async () => {
       try {
         const PIXI = await import('pixi.js');
-        const { Live2DModel } = await import('pixi-live2d-display/cubism4');
-
         if (!canvasRef.current || destroyed) return;
-
-        // @ts-expect-error pixi-live2d-display global hook
-        window.PIXI = PIXI;
 
         app = new PIXI.Application({
           view: canvasRef.current,
           autoStart: true,
           backgroundAlpha: 0,
-          width: 280,
-          height: 320,
+          width: CANVAS_W,
+          height: CANVAS_H,
           antialias: true,
         });
 
-        const model = await Live2DModel.from(MODEL_URL);
+        await Promise.all(AVATAR_STATES.map((s) => loadTexture(PIXI, s)));
         if (destroyed || !app) return;
 
-        model.scale.set(0.18);
-        model.anchor.set(0.5, 0.5);
-        model.position.set(app.screen.width / 2, app.screen.height * 0.55);
-        app.stage.addChild(model);
+        const initial = textures.get(stateRef.current)!;
+        spriteA = new PIXI.Sprite(initial);
+        spriteB = new PIXI.Sprite(initial);
+        spriteB.alpha = 0;
+        baseScale = fitSprite(spriteA);
+        fitSprite(spriteB);
+        app.stage.addChild(spriteA, spriteB);
 
-        const octopus = new PIXI.Text('🐙', { fontSize: 36 });
-        octopus.anchor.set(0.5);
-        octopus.position.set(app.screen.width / 2 + 40, app.screen.height * 0.28);
-        app.stage.addChild(octopus);
+        app.ticker.add(() => {
+          if (!spriteA || !spriteB) return;
+          const t = performance.now() / 1000;
+
+          if (fading && fadeOut && fadeIn) {
+            const p = Math.min(1, (performance.now() - fadeStart) / CROSSFADE_MS);
+            fadeOut.alpha = 1 - p;
+            fadeIn.alpha = p;
+            if (p >= 1) fading = false;
+          }
+
+          const visible = spriteA.alpha >= spriteB.alpha ? spriteA : spriteB;
+          applyStateMotion(visible, stateRef.current, t, baseScale);
+        });
       } catch (err) {
-        console.warn('Live2D load failed, use Fallback:', err);
+        console.warn('Pixi avatar load failed, use Fallback:', err);
         if (!destroyed) setFailed(true);
       }
     })();
 
     return () => {
       destroyed = true;
+      swapRef.current = null;
       app?.destroy(true);
     };
   }, []);
+
+  useEffect(() => {
+    void swapRef.current?.(state);
+  }, [state]);
 
   if (failed) {
     return <AvatarFallback state={state} />;
@@ -65,9 +190,9 @@ export function Live2DAvatar({ state }: Live2DAvatarProps) {
 
   return (
     <div className={`live2d-wrap avatar-state-${state}`}>
-      <canvas ref={canvasRef} className="live2d-canvas" />
+      <canvas ref={canvasRef} className="live2d-canvas" width={CANVAS_W} height={CANVAS_H} />
       <p className="avatar-name">cc404喵</p>
-      <p className="avatar-state-label">Live2D 模式</p>
+      <p className="avatar-state-label">{STATE_LABELS[state]}</p>
     </div>
   );
 }

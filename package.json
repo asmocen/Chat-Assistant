@@ -8,7 +8,11 @@
     "dev:client": "npm run dev --workspace=client",
     "dev:server": "npm run dev --workspace=server",
     "build": "npm run build --workspace=client && npm run build --workspace=server",
-    "start": "npm run start --workspace=server"
+    "start": "npm run start --workspace=server",
+    "sync": "node scripts/git-sync.mjs sync",
+    "sync:status": "node scripts/git-sync.mjs status",
+    "sync:pull": "node scripts/git-sync.mjs pull",
+    "sync:push": "node scripts/git-sync.mjs push"
   },
   "workspaces": [
     "client",
