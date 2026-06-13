@@ -100,6 +100,104 @@
   padding: 16px 0;
 }
 
+.avatar-chat-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.avatar-panel {
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-fallback,
+.live2d-wrap {
+  text-align: center;
+}
+
+.avatar-character {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-face {
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.avatar-octopus-clip {
+  position: absolute;
+  top: -4px;
+  right: 4px;
+  font-size: 1.75rem;
+  animation: tentacle-sway 2s ease-in-out infinite;
+}
+
+.avatar-state-listening .avatar-octopus-clip {
+  animation-duration: 0.8s;
+}
+
+.avatar-state-thinking .avatar-octopus-clip {
+  animation-duration: 1.2s;
+}
+
+.avatar-state-speaking .avatar-face {
+  animation: speak-bounce 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes tentacle-sway {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes speak-bounce {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+.avatar-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.avatar-state-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.live2d-canvas {
+  border-radius: 8px;
+  max-width: 100%;
+}
+
+.avatar-chat-column .chat-panel {
+  flex: 1;
+  min-height: 0;
+}
+
 @media (max-width: 768px) {
   .app-main {
     grid-template-columns: 1fr;

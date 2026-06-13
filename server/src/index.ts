@@ -2,7 +2,9 @@ import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
+import { authRouter } from './routes/auth.js';
 import { chatRouter } from './routes/chat.js';
+import { chatStreamRouter } from './routes/chatStream.js';
 
 const PORT = Number(process.env.PORT) || 3001;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
@@ -25,13 +27,15 @@ const limiter = rateLimit({
   message: { error: '请求过于频繁，请稍后再试（成本控制限流）' },
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/chat', limiter);
 app.use('/api', chatRouter);
+app.use('/api', chatStreamRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    model: process.env.OPENAI_MODEL || 'qwen-vl-plus',
     hasApiKey: Boolean(process.env.OPENAI_API_KEY),
   });
 });

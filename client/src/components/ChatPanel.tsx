@@ -3,11 +3,18 @@ import type { ChatMessage } from '../lib/api';
 interface ChatPanelProps {
   messages: ChatMessage[];
   isLoading: boolean;
+  streamingText?: string;
   lastTokenUsage?: number;
   lastSentImage?: boolean;
 }
 
-export function ChatPanel({ messages, isLoading, lastTokenUsage, lastSentImage }: ChatPanelProps) {
+export function ChatPanel({
+  messages,
+  isLoading,
+  streamingText,
+  lastTokenUsage,
+  lastSentImage,
+}: ChatPanelProps) {
   return (
     <div className="chat-panel">
       <div className="chat-header">
@@ -28,14 +35,14 @@ export function ChatPanel({ messages, isLoading, lastTokenUsage, lastSentImage }
         )}
         {messages.map((msg, i) => (
           <div key={i} className={`bubble ${msg.role}`}>
-            <span className="bubble-role">{msg.role === 'user' ? '你' : 'AI'}</span>
+            <span className="bubble-role">{msg.role === 'user' ? '你' : 'cc404喵'}</span>
             <p>{msg.content}</p>
           </div>
         ))}
-        {isLoading && (
+        {(isLoading || streamingText) && (
           <div className="bubble assistant loading">
-            <span className="bubble-role">AI</span>
-            <p className="typing">正在思考…</p>
+            <span className="bubble-role">cc404喵</span>
+            <p className="typing">{streamingText || '正在思考…'}</p>
           </div>
         )}
       </div>

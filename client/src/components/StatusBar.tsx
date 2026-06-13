@@ -8,6 +8,8 @@ interface StatusBarProps {
   model: string;
   totalTokens: number;
   requestCount: number;
+  kodoHit?: boolean;
+  semanticHit?: boolean;
 }
 
 export function StatusBar({
@@ -20,6 +22,8 @@ export function StatusBar({
   model,
   totalTokens,
   requestCount,
+  kodoHit,
+  semanticHit,
 }: StatusBarProps) {
   const status = !isActive
     ? '未启动'
@@ -44,7 +48,9 @@ export function StatusBar({
         {hasApiKey === false ? '⚠ 未配置 API Key' : `模型: ${model}`}
       </div>
       <div className="status-item muted cost">
-        请求 {requestCount} 次 · 累计 {totalTokens} tokens
+        请求 {requestCount} 次 · {totalTokens} tokens
+        {kodoHit !== undefined && ` · Kodo ${kodoHit ? '命中' : '未中'}`}
+        {semanticHit !== undefined && semanticHit && ' · 语义命中'}
       </div>
     </div>
   );
