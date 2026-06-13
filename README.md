@@ -28,6 +28,18 @@
 | [docs/DESIGN.md](docs/DESIGN.md) | 技术设计与用户故事 |
 | [docs/WORK_DIVISION.md](docs/WORK_DIVISION.md) | 两人三天分工 |
 | [docs/SYNC.md](docs/SYNC.md) | 本地与 GitHub 同步 |
+| [docs/SUBMISSION_REQUIREMENTS.md](docs/SUBMISSION_REQUIREMENTS.md) | **作品提交要求（PR/commit 规范）** |
+| [docs/PR_WORKFLOW.md](docs/PR_WORKFLOW.md) | PR 日常操作流程 |
+| [docs/PR_HISTORY.md](docs/PR_HISTORY.md) | 历史 commit 与 PR 对照 |
+
+## 协作与提交
+
+新功能须走 **feature 分支 + Pull Request**，禁止直接向 `main` 推送。详见 [docs/SUBMISSION_REQUIREMENTS.md](docs/SUBMISSION_REQUIREMENTS.md)。
+
+```bash
+npm run pr:new -- feature/your-feature   # 创建分支
+npm run pr:push                          # 推送并开 PR
+```
 
 ## 快速开始
 
@@ -41,7 +53,7 @@
 ### 安装
 
 ```bash
-git clone https://github.com/NuoChe/Chat-Assistant.git
+git clone https://github.com/asmocen/Chat-Assistant.git
 cd Chat-Assistant
 npm install
 cp .env.example .env

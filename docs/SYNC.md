@@ -22,12 +22,14 @@ git remote -v
 # upstream  https://github.com/NuoChe/Chat-Assistant.git
 ```
 
-3. 提交本地更改后首次推送：
+3. 日常开发请走 **PR 流程**（见 [PR_WORKFLOW.md](./PR_WORKFLOW.md)），不要直接向 `main` 推送功能代码：
 
 ```bash
+npm run pr:new -- feature/your-feature
 git add .
-git commit -m "你的提交说明"
-npm run sync:push
+git commit -m "feat(scope): 你的提交说明"
+npm run pr:push
+# 在 GitHub 创建 PR 并合并到 main
 ```
 
 ## 日常同步命令
@@ -60,10 +62,12 @@ Windows 也可直接运行：
 ```
 同伴更新 (upstream)
        ↓  npm run sync:pull
-   本地开发 + commit
-       ↓  npm run sync:push
+feature 分支开发 + commit
+       ↓  npm run pr:push → GitHub PR → 合并 main
 你的仓库 (origin / asmocen)
 ```
+
+提交规范见 [SUBMISSION_REQUIREMENTS.md](./SUBMISSION_REQUIREMENTS.md)。
 
 ## 注意事项
 

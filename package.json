@@ -12,7 +12,10 @@
     "sync": "node scripts/git-sync.mjs sync",
     "sync:status": "node scripts/git-sync.mjs status",
     "sync:pull": "node scripts/git-sync.mjs pull",
-    "sync:push": "node scripts/git-sync.mjs push"
+    "sync:push": "node scripts/git-sync.mjs push",
+    "pr:new": "node scripts/pr-workflow.mjs new",
+    "pr:push": "node scripts/pr-workflow.mjs push",
+    "pr:check": "node scripts/pr-workflow.mjs check"
   },
   "workspaces": [
     "client",
