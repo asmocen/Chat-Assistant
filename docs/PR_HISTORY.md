@@ -1,0 +1,162 @@
+# PR 与 Commit 对照记录
+
+> 用于补齐「持续 PR 记录」要求：历史直接推送到 `main` 的提交，在此按 **等效 PR** 归档；  
+> **此后新功能须走真实 GitHub PR**（见 [PR_WORKFLOW.md](./PR_WORKFLOW.md)）。
+
+---
+
+## 当前统计
+
+| 指标 | 数量 | 状态 |
+|------|------|------|
+| Commit（main） | 10+ | 已推送 |
+| 等效 PR 文档 | 4 | 见「历史提交」 |
+| 真实 GitHub PR | 6 | 已合并 |
+
+---
+
+## 真实 GitHub PR（2026-06-14）
+
+### PR #1 — docs(pr): submission requirements and PR workflow
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/1 |
+| **分支** | `docs/pr-standards` → `main` |
+| **合并日期** | 2026-06-14 |
+| **合并 commit** | `27ecdb4` |
+| **标题** | docs(pr): add submission requirements, PR workflow, and templates |
+| **功能说明** | 赛题提交规范、PR 流程文档、GitHub PR 模板、`npm run pr:*` / `sync:*` 脚本 |
+| **实现思路** | `docs/SUBMISSION_REQUIREMENTS.md`、`docs/PR_WORKFLOW.md`、`.github/PULL_REQUEST_TEMPLATE.md`、`scripts/pr-workflow.mjs` |
+| **测试方法** | `npm run pr:check`；GitHub 开 PR 时模板自动加载 |
+
+---
+
+### PR #2 — feat(avatar): Live2D four-state mode
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/2 |
+| **分支** | `feature/live2d-four-state` → `main` |
+| **合并日期** | 2026-06-14 |
+| **标题** | feat(avatar): enable Live2D four-state mode with octopus clip overlay |
+
+---
+
+### PR #3 — docs(pr): PR history record
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/3 |
+| **合并日期** | 2026-06-14 |
+| **标题** | docs(pr): record merged PR #1 and PR #2 in PR history |
+
+---
+
+### PR #4 — feat(qiniu): Kodo frame cache
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/4 |
+| **分支** | `feature/qiniu-kodo-cache` → `main` |
+| **合并日期** | 2026-06-14 |
+| **标题** | feat(qiniu): implement Kodo stat/upload and CDN URL for frames |
+| **功能说明** | 帧 hash 上传七牛 Kodo，命中 stat 返回 CDN URL 送 LLM |
+| **测试方法** | 配置七牛后同画面第二次对话 kodoHit: true |
+
+---
+
+### PR #5 — feat(cache): semantic cache
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/5 |
+| **分支** | `feature/semantic-cache` → `main` |
+| **合并日期** | 2026-06-14 |
+| **标题** | feat(cache): add semantic cache for frame hash and text |
+| **功能说明** | 同帧+同问法秒回，semanticHit: true，不调 LLM |
+| **测试方法** | 持物提问后不换物品再问相同问题 |
+
+---
+
+### PR #6 — docs(design): plan vs actual audit
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/6 |
+| **分支** | `docs/design-audit-update` → `main` |
+| **合并日期** | 2026-06-14 |
+| **标题** | docs(design): update plan vs actual audit and StatusBar cost labels |
+| **功能说明** | 赛题设计文档：用户故事/成本控制计划 vs 实际；StatusBar Kodo 文案 |
+| **测试方法** | 阅读 `docs/DESIGN.md`；`npm run dev` 查看状态栏 |
+
+---
+
+## 等效 PR 归档（历史提交，合并前直推 main）
+
+### PR-001 — Initial release
+
+| 字段 | 内容 |
+|------|------|
+| **合并 commit** | `22474fd` (2026-06-12) |
+| **标题** | feat(core): AI visual dialogue assistant MVP |
+| **功能说明** | 项目初始化：React 前端 + Express 后端，摄像头预览、Web Speech STT/TTS、多模态对话代理 |
+| **实现思路** | Monorepo（client/server workspaces）；端侧感知 + 云端 LLM 代理；按需帧抓拍与压缩 |
+| **测试方法** | `npm install && cp .env.example .env && npm run dev`，访问 :5173 开始对话 |
+
+---
+
+### PR-002 — Day 1: Auth + SSE + cc404喵
+
+| 字段 | 内容 |
+|------|------|
+| **合并 commit** | `2e18127` (2026-06-13) |
+| **标题** | feat(auth,chat,avatar): Day 1 auth, SSE streaming, and cc404喵 |
+| **功能说明** | 用户名密码注册登录；JWT 鉴权；SSE 流式对话；cc404喵 形象与产品文档 |
+| **实现思路** | SQLite + bcrypt + JWT；`/api/chat/stream` SSE；AvatarFallback PNG 四态；docs PRD/DESIGN 等 |
+| **测试方法** | 注册→登录→对话页；说话后 SSE 逐字显示；未登录跳转 /login |
+
+---
+
+### PR-003 — Fix env, layout, camera
+
+| 字段 | 内容 |
+|------|------|
+| **合并 commit** | `4481303` (2026-06-13) |
+| **标题** | fix(core): env loading, token stats, layout, and camera reliability |
+| **功能说明** | 修复 .env 加载、Token 统计、布局与摄像头稳定性 |
+| **实现思路** | 服务端 dotenv 路径修正；StatusBar token 累计；useMediaStream 重试与错误提示 |
+| **测试方法** | 配置 .env 后重启；对话后状态栏 token 递增；反复开关摄像头无崩溃 |
+
+---
+
+### PR-004 — Git sync scripts
+
+| 字段 | 内容 |
+|------|------|
+| **合并 commit** | `990991b` (2026-06-13) |
+| **标题** | chore(sync): add git sync scripts and asmocen remote |
+| **功能说明** | 本地与 GitHub（asmocen）/ 上游（NuoChe）双向同步脚本 |
+| **实现思路** | `scripts/git-sync.mjs` + npm scripts；origin/upstream 双远程 |
+| **测试方法** | `npm run sync:status`；`npm run sync:push` 推送到 asmocen/Chat-Assistant |
+
+---
+
+## 待开真实 PR（后续开发）
+
+| 计划 PR | 分支建议 | 内容 | 优先级 |
+|---------|----------|------|--------|
+| PR-006 | `feature/kodo-upload` | 前端 Kodo 直传 | P1 |
+| PR-007 | `fix/avatar-octopus-duplicate` | 去除 Live2D 双章鱼叠加 | P2 |
+| PR-008 | `feature/stt-fallback` | 云端 STT 降级 US-12 | P1 |
+| PR-009 | `feature/continuous-voice` | TTS 后自动重启 STT US-9 | P1 |
+
+> 每完成一行，在 GitHub 创建真实 PR 并在此表追加链接。
+
+---
+
+## 维护说明
+
+1. **新 PR 合并后**：在「真实 GitHub PR」章节追加条目，填写链接与合并日期  
+2. **禁止** 再在无 PR 的情况下向 `main` 推送功能代码  
+3. 评审抽查时：GitHub PR 列表 + 本文件 + `git log` 三者对照

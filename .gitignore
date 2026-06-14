@@ -1,0 +1,11 @@
+node_modules/
+dist/
+data/
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+client/public/avatar/*.orig.png
+.vscode/
+.idea/
