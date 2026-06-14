@@ -14,6 +14,7 @@ import { sessionsRouter } from './routes/sessions.js';
 import { ttsRouter } from './routes/tts.js';
 import { getMemoryConfig } from './services/conversationMemory.js';
 import { getMcpConnectionStatus, isMcpConfigured } from './services/mcpClient.js';
+import { isOpenAiApiKeyConfigured } from './services/apiKey.js';
 import { isQiniuConfigured } from './services/qiniu.js';
 import { getTtsConfig, isTtsEnabled } from './services/tts.js';
 import { isWebSearchSkillEnabled } from './skills/index.js';
@@ -62,7 +63,7 @@ app.get('/api/health', async (_req, res) => {
   res.json({
     status: 'ok',
     model: process.env.OPENAI_MODEL || 'qwen-vl-plus',
-    hasApiKey: Boolean(process.env.OPENAI_API_KEY),
+    hasApiKey: isOpenAiApiKeyConfigured(),
     qiniuConfigured: isQiniuConfigured(),
     memoryEnabled: true,
     memoryTurnLimit: memory.turnLimit,
@@ -82,6 +83,6 @@ app.get('/api/health', async (_req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
   console.log(
-    `LLM: ${process.env.OPENAI_MODEL || 'qwen-vl-plus'}, API Key: ${process.env.OPENAI_API_KEY ? '已配置' : '未配置'}`,
+    `LLM: ${process.env.OPENAI_MODEL || 'qwen-vl-plus'}, API Key: ${isOpenAiApiKeyConfigured() ? '已配置' : '未配置（请在 .env 填入 DashScope API Key）'}`,
   );
 });

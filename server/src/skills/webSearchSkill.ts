@@ -72,7 +72,12 @@ export function filterSearchResultsByRelevance(
     return { text: hit ? one : null, hasRelevant: hit };
   }
 
-  if (terms.length === 0) return { text: lines.join('\n'), hasRelevant: true };
+  if (terms.length === 0) {
+    return {
+      text: lines.length ? lines.join('\n') : rawText.replace(/\s+/g, ' ').trim(),
+      hasRelevant: true,
+    };
+  }
 
   const scored = lines
     .map((line) => {
@@ -83,7 +88,12 @@ export function filterSearchResultsByRelevance(
     .filter((s) => s.hits > 0)
     .sort((a, b) => b.hits - a.hits);
 
-  if (scored.length === 0) return { text: null, hasRelevant: false };
+  if (scored.length === 0) {
+    if (process.env.DEMO_OPEN_WEB_SEARCH === 'true' && lines.length > 0) {
+      return { text: lines.slice(0, 3).join('\n'), hasRelevant: true };
+    }
+    return { text: null, hasRelevant: false };
+  }
   return { text: scored.map((s) => s.line).join('\n'), hasRelevant: true };
 }
 
@@ -287,8 +297,16 @@ export function resolveSearchQuery(userText: string, history: ChatMessage[]): st
   return t;
 }
 
+const DEMO_WEB_SEARCH_INTENT =
+  /什么|哪里|哪儿|谁|多少|几点|星期|如何|怎么|介绍|讲讲|告诉我|最新|新闻|天气|搜索|查|世界杯|赛事|公司|产品/i;
+
 export function needsWebSearch(userText: string, history: ChatMessage[] = []): boolean {
   const t = userText.trim();
+  if (process.env.DEMO_OPEN_WEB_SEARCH === 'true') {
+    if (SEARCH_INTENT.test(t) || WEATHER_INTENT.test(t) || FACTUAL_INTENT.test(t)) return true;
+    if (DEMO_WEB_SEARCH_INTENT.test(t)) return true;
+    if (/[？?]$/.test(t) && t.length >= 4) return true;
+  }
   if (SEARCH_INTENT.test(t) || WEATHER_INTENT.test(t) || FACTUAL_INTENT.test(t)) {
     return true;
   }

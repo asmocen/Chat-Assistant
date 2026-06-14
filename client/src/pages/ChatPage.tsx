@@ -29,12 +29,14 @@ function needsVision(text: string): boolean {
 }
 
 function shouldSkipImage(text: string): boolean {
+  if (DEMO_OPEN_VISION) return false;
   if (needsVision(text)) return false;
   return true;
 }
 
 const REPLY_MODE_KEY = 'reply_detail_mode';
 const LEGACY_VISION_MODE_KEY = 'vision_detail_mode';
+const DEMO_OPEN_VISION = import.meta.env.VITE_DEMO_OPEN_VISION === 'true';
 
 function loadReplyDetailMode(): ReplyDetailMode {
   const stored =
@@ -142,13 +144,18 @@ export default function ChatPage() {
       if (!skipImage && videoRef.current && isActive) {
         const frame = captureFrame(videoRef.current);
         if (frame) {
-          const changed = await isSceneChanged(frame, lastFrameRef.current);
-          const forceFrame = replyDetailMode === 'detailed' && needsVision(trimmed);
-          if (changed || forceFrame) {
+          if (DEMO_OPEN_VISION) {
             imageBase64 = frame;
             lastFrameRef.current = frame;
           } else {
-            skipImage = true;
+            const changed = await isSceneChanged(frame, lastFrameRef.current);
+            const forceFrame = replyDetailMode === 'detailed' && needsVision(trimmed);
+            if (changed || forceFrame) {
+              imageBase64 = frame;
+              lastFrameRef.current = frame;
+            } else {
+              skipImage = true;
+            }
           }
         }
       }
@@ -231,7 +238,7 @@ export default function ChatPage() {
     [videoRef, isActive, flushComplete, feedStreamingText, resetStream, username, replyDetailMode],
   );
 
-  const { isListening, interimText, supported: speechSupported, start: startListen, stop: stopListen } =
+  const { isListening, interimText, supported: speechSupported, error: speechError, start: startListen, stop: stopListen } =
     useSpeechRecognition(handleUserInput);
 
   startListenRef.current = startListen;
@@ -338,6 +345,7 @@ export default function ChatPage() {
       </header>
 
       {mediaError && <div className="alert">{mediaError}</div>}
+      {speechError && <div className="alert warn">{speechError}</div>}
       {!speechSupported && (
         <div className="alert warn">
           当前浏览器不支持 Web Speech API，请使用 Chrome/Edge，或通过下方文本框输入。

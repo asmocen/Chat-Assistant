@@ -1,3 +1,5 @@
+import { getOpenAiApiKey } from './apiKey.js';
+
 const TTS_API_URL = 'https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer';
 
 export function isTtsEnabled(): boolean {
@@ -15,7 +17,7 @@ export function getTtsConfig() {
 }
 
 function getTtsApiKey(): string | undefined {
-  return process.env.OPENAI_API_KEY?.trim() || process.env.DASHSCOPE_API_KEY?.trim();
+  return getOpenAiApiKey() || process.env.DASHSCOPE_API_KEY?.trim();
 }
 
 export async function synthesizeSpeech(text: string): Promise<{ buffer: Buffer; contentType: string }> {

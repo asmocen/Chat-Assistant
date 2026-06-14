@@ -18,6 +18,11 @@ export function hasDescribedAppearance(history: ChatMessage[]): boolean {
   );
 }
 
+/** 演示模式：会话中每轮都传图（需客户端 VITE_DEMO_OPEN_VISION 同步开启） */
+export function isDemoOpenVision(): boolean {
+  return process.env.DEMO_OPEN_VISION === 'true';
+}
+
 /** 服务端最终是否跳过图像：默认跳过，仅视觉意图时传图；详细回复模式下视觉问题可重复传图 */
 export function resolveSkipImage(
   userText: string,
@@ -25,6 +30,7 @@ export function resolveSkipImage(
   clientSkip?: boolean,
   replyDetailMode: ReplyDetailMode = 'brief',
 ): boolean {
+  if (isDemoOpenVision()) return Boolean(clientSkip);
   if (clientSkip) return true;
   if (!needsVision(userText)) return true;
   if (replyDetailMode === 'detailed') return false;

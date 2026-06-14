@@ -5,6 +5,15 @@
 
 登录后，**cc404喵** 会结合你的摄像头画面与语音，给出自然的中文回复。端侧负责感知与表达，七牛云负责帧缓存与加速，云端 LLM 负责理解生成。
 
+## 演示视频
+
+作品功能演示录像（百度网盘）：
+
+- **链接**：https://pan.baidu.com/s/1xGhyEQ8bvrlFIm3_WkXP4Q?pwd=1k3h
+- **提取码**：`1k3h`
+
+演示内容涵盖：注册登录、Live2D 四态、摄像头多模态识图、语音对话、联网 Skill 与状态栏缓存统计。
+
 ## 功能特性
 
 - **用户名 + 密码** 注册登录，安全进入对话
@@ -58,7 +67,7 @@ npm run pr:push                          # 推送并开 PR
 ### 安装
 
 ```bash
-git clone https://github.com/asmocen/Chat-Assistant.git
+git clone https://github.com/NuoChe/Chat-Assistant.git
 cd Chat-Assistant
 npm install
 cp .env.example .env

@@ -1,4 +1,5 @@
 import { sanitizeHistoryForLlm } from './historySanitizer.js';
+import { getOpenAiApiKey } from './apiKey.js';
 import { needsVision } from './imagePolicy.js';
 import { resolveReplyMaxTokens, resolveReplyTemperature, buildReplyModeBanner, type ReplyDetailMode } from './replyMode.js';
 
@@ -91,7 +92,7 @@ ${buildVisionSessionRule(userText, replyDetailMode)}
 
 export function getLlmConfig() {
   return {
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: getOpenAiApiKey(),
     baseUrl: (process.env.OPENAI_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1').replace(
       /\/$/,
       '',
@@ -164,7 +165,7 @@ export async function callLlm(params: {
   skipDetailedExpand?: boolean;
 }): Promise<{ reply: string; usage?: { total_tokens?: number } }> {
   const { apiKey, baseUrl, model } = getLlmConfig();
-  if (!apiKey) throw new Error('未配置 OPENAI_API_KEY');
+  if (!apiKey) throw new Error('未配置有效的 OPENAI_API_KEY，请在 .env 中填入 DashScope API Key');
 
   const replyDetailMode = pickReplyDetailMode(params.replyDetailMode, params.visionDetailMode);
 
@@ -287,7 +288,7 @@ export async function* streamLlm(params: {
   visionDetailMode?: ReplyDetailMode;
 }): AsyncGenerator<string, { total_tokens?: number } | undefined> {
   const { apiKey, baseUrl, model } = getLlmConfig();
-  if (!apiKey) throw new Error('未配置 OPENAI_API_KEY');
+  if (!apiKey) throw new Error('未配置有效的 OPENAI_API_KEY，请在 .env 中填入 DashScope API Key');
 
   const replyDetailMode = pickReplyDetailMode(params.replyDetailMode, params.visionDetailMode);
 
