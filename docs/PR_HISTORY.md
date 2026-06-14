@@ -9,9 +9,9 @@
 
 | 指标 | 数量 | 状态 |
 |------|------|------|
-| Commit（main） | 7 | 已推送 |
+| Commit（main） | 10+ | 已推送 |
 | 等效 PR 文档 | 4 | 见「历史提交」 |
-| 真实 GitHub PR | 5 | 已合并（#6 待合并） |
+| 真实 GitHub PR | 6 | 已合并 |
 
 ---
 
@@ -76,6 +76,19 @@
 | **标题** | feat(cache): add semantic cache for frame hash and text |
 | **功能说明** | 同帧+同问法秒回，semanticHit: true，不调 LLM |
 | **测试方法** | 持物提问后不换物品再问相同问题 |
+
+---
+
+### PR #6 — docs(design): plan vs actual audit
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/6 |
+| **分支** | `docs/design-audit-update` → `main` |
+| **合并日期** | 2026-06-14 |
+| **标题** | docs(design): update plan vs actual audit and StatusBar cost labels |
+| **功能说明** | 赛题设计文档：用户故事/成本控制计划 vs 实际；StatusBar Kodo 文案 |
+| **测试方法** | 阅读 `docs/DESIGN.md`；`npm run dev` 查看状态栏 |
 
 ---
 
