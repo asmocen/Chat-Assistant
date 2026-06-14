@@ -54,52 +54,61 @@
 
 ---
 
-## 3. 用户故事：计划 vs 实现（V2 目标）
+## 3. 用户故事：计划 vs 实现
 
-| # | 用户故事 | 计划 | V2 目标 | 实现要点 |
-|---|---------|------|---------|---------|
-| US-0 | 注册登录后才能使用助手 | ✅ | ✅ | SQLite + JWT + 路由守卫 |
-| US-1 | 看到实时摄像头画面 | ✅ | ✅ | 本地 preview |
+| # | 用户故事 | 计划 | 实际 | 备注 |
+|---|---------|------|------|------|
+| US-0 | 注册登录后才能使用助手 | ✅ | ✅ | JWT + 路由守卫 |
+| US-1 | 看到实时摄像头画面 | ✅ | ✅ | 本地 preview，不上传视频流 |
 | US-2 | 自然语音对话 | ✅ | ✅ | Web Speech 连续识别 |
-| US-3 | AI 结合画面回答 | ✅ | ✅ | Kodo/CDN + 多模态 API |
-| US-4 | 听到 AI 语音回复 | ✅ | ✅ | 分段 TTS |
+| US-3 | AI 结合画面回答 | ✅ | ✅ | 抓拍帧 + Kodo/CDN URL（已配置时）或 base64 降级 |
+| US-4 | 听到 AI 语音回复 | ✅ | ✅ | TTS 可开关；整段播报（未做分段 TTS） |
 | US-5 | 查看对话记录 | ✅ | ✅ | 流式气泡 UI |
 | US-6 | STT 不可用时文字输入 | ✅ | ✅ | 底部输入框 |
-| US-7 | 了解资源消耗 | ✅ | ✅ | tokens + kodoHit + semanticHit |
+| US-7 | 了解资源消耗 | ✅ | ✅ | tokens + kodoHit + semanticHit 状态栏 |
 | US-8 | 记住最近几轮上下文 | ✅ | ✅ | 最近 6 轮 |
-| US-9 | 会话内连续语音对话 | ✅ | ✅ | TTS 完自动重启 STT（非唤醒词） |
-| US-10 | 弱网环境下仍可用 | ✅ | ✅ | 超时重试 + 文字降级 |
-| US-11 | 切换前后摄像头 | ✅ | ✅ | facingMode toggle |
-| US-12 | 云端 STT 备选 | ✅ | ✅ | `/api/stt` Whisper 兼容 |
+| US-9 | 会话内连续语音对话 | ✅ | ❌ | TTS 结束后未自动重启 STT |
+| US-10 | 弱网环境下仍可用 | ✅ | ❌ | 无超时重试；文字输入仍可用 |
+| US-11 | 切换前后摄像头 | ✅ | ❌ | 仅前置摄像头 |
+| US-12 | 云端 STT 备选 | ✅ | ❌ | `/api/stt` 未实现 |
 
-**V2 目标实现率：13/13**
+**实际实现率：11/13 可用（US-3/US-7 在七牛配置后完整）；4 项 P1 待后续 PR**
 
-> MVP 阶段为 8/12；V2 冲刺补齐 US-0、US-9~12 及七牛/Live2D/流式能力。
+> MVP 阶段 8/12；当前已补齐 Auth、SSE、Live2D 四态、Kodo 服务端代传、语义缓存。
+
+### 演示脚本（评审 2 分钟）
+
+1. 注册/登录 → cc404喵 问候
+2. 开始对话 → 持物对摄像头问「这是什么？」→ 流式回答，状态栏显示 tokens
+3. **不换物品**，再问相同问题 → `semanticHit: true` 秒回（不调 LLM）
+4. 同画面换问法但帧 hash 相同 → 第二次起 `kodoHit: true`（Kodo 命中）
+5. 未配置七牛时自动 base64 降级，功能仍可用
 
 ---
 
-## 4. 运营成本控制：技巧 vs 实际采用（V2）
+## 4. 运营成本控制：计划 vs 实际采用
 
-| 技巧 | 描述 | V2 采用 | 实现位置 |
-|------|------|---------|---------|
-| 本地音视频预览 | 视频流仅浏览器渲染 | ✅ | `useMediaStream.ts` |
-| 端侧 STT/TTS | Web Speech API | ✅ | `useSpeechRecognition.ts` / `useSpeechSynthesis.ts` |
-| 按需抓拍 | 说话结束抓一帧 | ✅ | `frameCapture.ts` |
-| 图像压缩 | ≤512px JPEG 0.65 | ✅ | `frameCapture.ts` |
-| 场景变化检测 | 画面未变跳过上传 | ✅ | `isSceneChanged()` |
-| 低精度视觉 | `detail: low` | ✅ | `llm.ts` |
-| 历史截断 | 最近 6 轮 | ✅ | `llm.ts` |
-| max_tokens 限制 | 300 | ✅ | `llm.ts` |
-| 服务端限流 | 10 次/分钟 | ✅ | `index.ts` |
-| Token 可视化 | 状态栏累计 | ✅ | `StatusBar.tsx` |
-| **七牛 Kodo 帧缓存** | 同 hash 不重复上传 | ✅ V2 | `qiniu.ts` |
-| **KCDN URL 送模** | 无 base64 直传 LLM | ✅ V2 | `chat.ts` |
-| **端侧 Kodo 直传** | 减服务器带宽 | ✅ V2 | `useKodoUpload.ts` |
-| **语义缓存** | hash+text 精确匹配 | ✅ V2 | `semanticCache.ts` |
-| **SSE 流式** | 降低首字感知延迟 | ✅ V2 | `chatStream.ts` |
-| 持续视频流分析 | 30fps 上传 | ❌ | 成本过高 |
-| 向量语义相似度 | 模糊匹配缓存 | ❌ | 三天用精确匹配 |
-| 本地 VLM 推理 | 端侧小模型 | ❌ | 算力限制 |
+| 技巧 | 描述 | 计划 | 实际 | 实现位置 |
+|------|------|------|------|---------|
+| 本地音视频预览 | 视频流仅浏览器渲染 | ✅ | ✅ | `useMediaStream.ts` |
+| 端侧 STT/TTS | Web Speech API | ✅ | ✅ | `useSpeechRecognition.ts` / `useSpeechSynthesis.ts` |
+| 按需抓拍 | 说话结束抓一帧 | ✅ | ✅ | `frameCapture.ts` |
+| 图像压缩 | ≤512px JPEG 0.65 | ✅ | ✅ | `frameCapture.ts` |
+| 场景变化检测 | 画面未变跳过上传 | ✅ | ✅ | `isSceneChanged()` |
+| 低精度视觉 | `detail: low` | ✅ | ✅ | `llm.ts` |
+| 历史截断 | 最近 6 轮 | ✅ | ✅ | `llm.ts` |
+| max_tokens 限制 | 300 | ✅ | ✅ | `llm.ts` |
+| 服务端限流 | 10 次/分钟 | ✅ | ✅ | `index.ts` |
+| Token 可视化 | 状态栏累计 | ✅ | ✅ | `StatusBar.tsx` |
+| **七牛 Kodo 帧缓存** | 同 hash stat 命中 | ✅ | ✅ | `qiniu.ts`（服务端代传） |
+| **KCDN URL 送模** | CDN URL 替代 base64 | ✅ | ✅ | `resolveImageUrl` → `llm.ts` |
+| **语义缓存** | frameHash+text 精确匹配 TTL 10min | ✅ | ✅ | `semanticCache.ts` |
+| **SSE 流式** | 降低首字感知延迟 | ✅ | ✅ | `chatStream.ts` |
+| 端侧 Kodo 直传 | 减服务器带宽 | ✅ | ❌ | 待 `useKodoUpload.ts` |
+| 分段 TTS | 流式播报 | ✅ | ❌ | 当前整段 TTS |
+| 持续视频流分析 | 30fps 上传 | ❌ | ❌ | 成本过高，刻意不做 |
+| 向量语义相似度 | 模糊匹配缓存 | ❌ | ❌ | 用精确匹配代替 |
+| 本地 VLM 推理 | 端侧小模型 | ❌ | ❌ | 算力限制 |
 
 ### 成本估算（V2，单次对话）
 
@@ -118,7 +127,7 @@
 | 层级 | 技术 |
 |------|------|
 | 前端 | React + Vite + TypeScript + React Router |
-| 虚拟形象 | pixi.js + pixi-live2d-display |
+| 虚拟形象 | pixi.js + PNG 四态（Live2D 风格） |
 | 端侧语音 | Web Speech API（主）+ 云端 Whisper（降级） |
 | 账号 | SQLite + bcrypt + JWT |
 | 后端 | Express + TypeScript |

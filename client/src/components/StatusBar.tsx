@@ -10,6 +10,8 @@ interface StatusBarProps {
   requestCount: number;
   kodoHit?: boolean;
   semanticHit?: boolean;
+  qiniuConfigured?: boolean | null;
+  sentImage?: boolean;
 }
 
 export function StatusBar({
@@ -24,6 +26,8 @@ export function StatusBar({
   requestCount,
   kodoHit,
   semanticHit,
+  qiniuConfigured,
+  sentImage,
 }: StatusBarProps) {
   const status = !isActive
     ? '未启动'
@@ -50,8 +54,9 @@ export function StatusBar({
       <div className="status-item muted cost">
         请求 {requestCount} 次 · {totalTokens} tokens
         {kodoHit === true && ' · Kodo 命中'}
-        {kodoHit === false && ' · Kodo 未接入'}
-        {semanticHit !== undefined && semanticHit && ' · 语义命中'}
+        {kodoHit === false && qiniuConfigured === false && ' · Kodo 未配置'}
+        {kodoHit === false && qiniuConfigured === true && sentImage && ' · Kodo 新帧'}
+        {semanticHit === true && ' · 语义命中'}
       </div>
     </div>
   );
