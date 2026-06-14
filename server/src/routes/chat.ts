@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { callLlm } from '../services/llm.js';
+import {
+  buildCacheKey,
+  getSemanticCache,
+  setSemanticCache,
+} from '../services/semanticCache.js';
 import { resolveImageUrl } from '../services/qiniu.js';
 
 export const chatRouter = Router();
@@ -26,17 +31,33 @@ chatRouter.post('/chat', authMiddleware, async (req, res) => {
   }
 
   try {
-    const { imageUrl, kodoHit } = await resolveImageUrl(imageBase64, imageKey);
+    const trimmed = text.trim();
+    const { imageUrl, kodoHit, frameHash } = await resolveImageUrl(imageBase64, imageKey);
     const sentImage = Boolean(!skipImage && (imageUrl || imageBase64));
+    const cacheKey = buildCacheKey(skipImage ? null : frameHash, trimmed);
+    const cached = getSemanticCache(cacheKey);
+
+    if (cached) {
+      return res.json({
+        reply: cached.reply,
+        usage: cached.usage ?? { total_tokens: 0 },
+        sentImage,
+        kodoHit,
+        semanticHit: true,
+        imageUrl,
+      });
+    }
 
     const result = await callLlm({
-      text: text.trim(),
+      text: trimmed,
       history,
       username: req.user!.username,
       imageUrl,
       imageBase64: imageUrl ? undefined : imageBase64,
       skipImage,
     });
+
+    setSemanticCache(cacheKey, { reply: result.reply, usage: result.usage });
 
     res.json({
       reply: result.reply,
