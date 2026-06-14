@@ -9,13 +9,45 @@
 
 | 指标 | 数量 | 状态 |
 |------|------|------|
-| Commit（main） | 4 | 已推送 |
-| 等效 PR 文档 | 4 | 见下表 |
-| 真实 GitHub PR | 0 | **待后续按规范补开** |
+| Commit（main） | 7 | 已推送 |
+| 等效 PR 文档 | 4 | 见「历史提交」 |
+| 真实 GitHub PR | 2 | 已合并 |
 
 ---
 
-## 等效 PR 归档（历史提交）
+## 真实 GitHub PR（2026-06-14）
+
+### PR #1 — docs(pr): submission requirements and PR workflow
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/1 |
+| **分支** | `docs/pr-standards` → `main` |
+| **合并日期** | 2026-06-14 |
+| **合并 commit** | `27ecdb4` |
+| **标题** | docs(pr): add submission requirements, PR workflow, and templates |
+| **功能说明** | 赛题提交规范、PR 流程文档、GitHub PR 模板、`npm run pr:*` / `sync:*` 脚本 |
+| **实现思路** | `docs/SUBMISSION_REQUIREMENTS.md`、`docs/PR_WORKFLOW.md`、`.github/PULL_REQUEST_TEMPLATE.md`、`scripts/pr-workflow.mjs` |
+| **测试方法** | `npm run pr:check`；GitHub 开 PR 时模板自动加载 |
+
+---
+
+### PR #2 — feat(avatar): Live2D four-state mode
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/2 |
+| **分支** | `feature/live2d-four-state` → `main` |
+| **合并日期** | 2026-06-14 |
+| **合并 commit** | `f0e6c03` |
+| **标题** | feat(avatar): enable Live2D four-state mode with octopus clip overlay |
+| **功能说明** | 登录后默认 Live2D 四态；Header 可切 Fallback；Pixi 加载失败自动降级 |
+| **实现思路** | `Live2DAvatar` Pixi 四态 PNG 交叉淡入 + 章鱼发卡图层；`ChatPage` 状态机联动 |
+| **测试方法** | `npm run dev` → 登录 → 四态切换；`npm run build --workspace=client` |
+
+---
+
+## 等效 PR 归档（历史提交，合并前直推 main）
 
 ### PR-001 — Initial release
 
@@ -71,17 +103,15 @@
 |---------|----------|------|--------|
 | PR-005 | `feature/semantic-cache` | 语义缓存 semanticHit | P0 |
 | PR-006 | `feature/kodo-upload` | 前端 Kodo 直传 | P0 |
-| PR-007 | `feature/live2d` | Live2D 四态启用 | P1 |
+| PR-007 | `fix/avatar-octopus-duplicate` | 去除 Live2D 双章鱼叠加 | P2 |
 | PR-008 | `feature/stt-fallback` | 云端 STT 降级 | P1 |
-| PR-009 | `docs/pr-standards` | PR 规范与提交要求文档 | P0 |
 
-> 每完成一行，在 GitHub 创建真实 PR 并在此表追加链接，例如：  
-> `PR-009: https://github.com/asmocen/Chat-Assistant/pull/1`
+> 每完成一行，在 GitHub 创建真实 PR 并在此表追加链接。
 
 ---
 
 ## 维护说明
 
-1. **新 PR 合并后**：在本文件「待开真实 PR」下方追加一行，填写 PR 链接与合并日期  
+1. **新 PR 合并后**：在「真实 GitHub PR」章节追加条目，填写链接与合并日期  
 2. **禁止** 再在无 PR 的情况下向 `main` 推送功能代码  
 3. 评审抽查时：GitHub PR 列表 + 本文件 + `git log` 三者对照
