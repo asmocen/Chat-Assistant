@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import {
   AVATAR_IMAGES,
   AVATAR_STATES,
+  OCTOPUS_CLIP_URL,
   type AvatarState,
 } from '../lib/avatarAssets';
 import { AvatarFallback } from './AvatarFallback';
-
-// TODO: 当前未启用；由 AvatarPanel 统一走 Fallback，后续恢复 Pixi 渲染时继续使用本组件
 
 const CANVAS_W = 360;
 const CANVAS_H = 270;
@@ -29,6 +28,14 @@ function fitSprite(sprite: import('pixi.js').Sprite): number {
   sprite.scale.set(scale);
   sprite.anchor.set(0.5, 0.5);
   sprite.position.set(CANVAS_W / 2, CANVAS_H / 2 + 8);
+  return scale;
+}
+
+function fitOctopus(sprite: import('pixi.js').Sprite): number {
+  const tex = sprite.texture;
+  const scale = Math.min(56 / tex.width, 56 / tex.height, 1);
+  sprite.scale.set(scale);
+  sprite.anchor.set(0.5, 0.9);
   return scale;
 }
 
@@ -69,6 +76,43 @@ function applyStateMotion(
   }
 }
 
+function applyOctopusMotion(
+  sprite: import('pixi.js').Sprite,
+  avatarState: AvatarState,
+  t: number,
+  baseScale: number,
+  bodyCx: number,
+  bodyCy: number,
+): void {
+  const headX = bodyCx + 52;
+  const headY = bodyCy - 72;
+
+  switch (avatarState) {
+    case 'idle':
+      sprite.rotation = Math.sin(t * 3) * 0.1;
+      sprite.position.set(headX, headY + Math.sin(t * 2.5) * 2);
+      sprite.scale.set(baseScale);
+      break;
+    case 'listening':
+      sprite.rotation = Math.sin(t * 4) * 0.06;
+      sprite.position.set(headX + 2, headY - 3);
+      sprite.scale.set(baseScale * 1.05);
+      break;
+    case 'thinking':
+      sprite.rotation = Math.sin(t * 6) * 0.14;
+      sprite.position.set(headX, headY + Math.sin(t * 5) * 3);
+      sprite.scale.set(baseScale);
+      break;
+    case 'speaking': {
+      const pulse = baseScale * (1 + Math.sin(t * 10) * 0.07);
+      sprite.rotation = Math.sin(t * 8) * 0.08;
+      sprite.position.set(headX, headY);
+      sprite.scale.set(pulse);
+      break;
+    }
+  }
+}
+
 export function Live2DAvatar({ state }: Live2DAvatarProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [failed, setFailed] = useState(false);
@@ -82,8 +126,10 @@ export function Live2DAvatar({ state }: Live2DAvatarProps) {
     let app: import('pixi.js').Application | null = null;
     let spriteA: import('pixi.js').Sprite | null = null;
     let spriteB: import('pixi.js').Sprite | null = null;
+    let octopusSprite: import('pixi.js').Sprite | null = null;
     let activeIsA = true;
     let baseScale = 0.35;
+    let octopusBaseScale = 1;
     let fading = false;
     let fadeStart = 0;
     let fadeOut: import('pixi.js').Sprite | null = null;
@@ -93,17 +139,22 @@ export function Live2DAvatar({ state }: Live2DAvatarProps) {
     const getActive = () => (activeIsA ? spriteA : spriteB)!;
     const getInactive = () => (activeIsA ? spriteB : spriteA)!;
 
-    const loadTexture = async (PIXI: typeof import('pixi.js'), s: AvatarState) => {
-      let tex = textures.get(s);
-      if (tex) return tex;
-      tex = PIXI.Texture.from(AVATAR_IMAGES[s]);
+    const loadTexture = async (PIXI: typeof import('pixi.js'), url: string) => {
+      const tex = PIXI.Texture.from(url);
       if (!tex.valid) {
         await new Promise<void>((resolve, reject) => {
-          tex!.baseTexture.once('loaded', () => resolve());
-          tex!.baseTexture.once('error', reject);
+          tex.baseTexture.once('loaded', () => resolve());
+          tex.baseTexture.once('error', reject);
         });
       }
       if (destroyed) throw new Error('destroyed');
+      return tex;
+    };
+
+    const loadAvatarTexture = async (PIXI: typeof import('pixi.js'), s: AvatarState) => {
+      let tex = textures.get(s);
+      if (tex) return tex;
+      tex = await loadTexture(PIXI, AVATAR_IMAGES[s]);
       textures.set(s, tex);
       return tex;
     };
@@ -112,7 +163,7 @@ export function Live2DAvatar({ state }: Live2DAvatarProps) {
       if (!spriteA || !spriteB || destroyed) return;
 
       const PIXI = await import('pixi.js');
-      const tex = await loadTexture(PIXI, next);
+      const tex = await loadAvatarTexture(PIXI, next);
       const active = getActive();
       if (active.texture === tex && active.alpha > 0.9) return;
 
@@ -142,7 +193,8 @@ export function Live2DAvatar({ state }: Live2DAvatarProps) {
           antialias: true,
         });
 
-        await Promise.all(AVATAR_STATES.map((s) => loadTexture(PIXI, s)));
+        await Promise.all(AVATAR_STATES.map((s) => loadAvatarTexture(PIXI, s)));
+        const octopusTex = await loadTexture(PIXI, OCTOPUS_CLIP_URL);
         if (destroyed || !app) return;
 
         const initial = textures.get(stateRef.current)!;
@@ -151,10 +203,14 @@ export function Live2DAvatar({ state }: Live2DAvatarProps) {
         spriteB.alpha = 0;
         baseScale = fitSprite(spriteA);
         fitSprite(spriteB);
-        app.stage.addChild(spriteA, spriteB);
+
+        octopusSprite = new PIXI.Sprite(octopusTex);
+        octopusBaseScale = fitOctopus(octopusSprite);
+
+        app.stage.addChild(spriteA, spriteB, octopusSprite);
 
         app.ticker.add(() => {
-          if (!spriteA || !spriteB) return;
+          if (!spriteA || !spriteB || !octopusSprite) return;
           const t = performance.now() / 1000;
 
           if (fading && fadeOut && fadeIn) {
@@ -166,6 +222,14 @@ export function Live2DAvatar({ state }: Live2DAvatarProps) {
 
           const visible = spriteA.alpha >= spriteB.alpha ? spriteA : spriteB;
           applyStateMotion(visible, stateRef.current, t, baseScale);
+          applyOctopusMotion(
+            octopusSprite,
+            stateRef.current,
+            t,
+            octopusBaseScale,
+            visible.position.x,
+            visible.position.y,
+          );
         });
       } catch (err) {
         console.warn('Pixi avatar load failed, use Fallback:', err);
@@ -190,7 +254,9 @@ export function Live2DAvatar({ state }: Live2DAvatarProps) {
 
   return (
     <div className={`live2d-wrap avatar-state-${state}`}>
-      <canvas ref={canvasRef} className="live2d-canvas" width={CANVAS_W} height={CANVAS_H} />
+      <div className="live2d-stage">
+        <canvas ref={canvasRef} className="live2d-canvas" width={CANVAS_W} height={CANVAS_H} />
+      </div>
       <p className="avatar-name">cc404喵</p>
       <p className="avatar-state-label">{STATE_LABELS[state]}</p>
     </div>
