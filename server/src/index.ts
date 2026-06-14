@@ -10,6 +10,7 @@ import rateLimit from 'express-rate-limit';
 import { authRouter } from './routes/auth.js';
 import { chatRouter } from './routes/chat.js';
 import { chatStreamRouter } from './routes/chatStream.js';
+import { isQiniuConfigured } from './services/qiniu.js';
 
 const PORT = Number(process.env.PORT) || 3001;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
@@ -42,6 +43,7 @@ app.get('/api/health', (_req, res) => {
     status: 'ok',
     model: process.env.OPENAI_MODEL || 'qwen-vl-plus',
     hasApiKey: Boolean(process.env.OPENAI_API_KEY),
+    qiniuConfigured: isQiniuConfigured(),
   });
 });
 
