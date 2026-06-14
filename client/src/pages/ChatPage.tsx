@@ -32,6 +32,7 @@ export default function ChatPage() {
   const [requestCount, setRequestCount] = useState(0);
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
   const [model, setModel] = useState('qwen-vl-plus');
+  const [qiniuConfigured, setQiniuConfigured] = useState<boolean | null>(null);
   const [sessionActive, setSessionActive] = useState(false);
   const [avatarMode, setAvatarMode] = useState<'fallback' | 'live2d'>('live2d');
   const [welcomed, setWelcomed] = useState(false);
@@ -44,6 +45,7 @@ export default function ChatPage() {
     checkHealth().then((h) => {
       setHasApiKey(h.hasApiKey);
       setModel(h.model);
+      setQiniuConfigured(h.qiniuConfigured ?? false);
     });
   }, []);
 
@@ -257,6 +259,8 @@ export default function ChatPage() {
         requestCount={requestCount}
         kodoHit={lastKodoHit}
         semanticHit={lastSemanticHit}
+        qiniuConfigured={qiniuConfigured}
+        sentImage={lastSentImage}
       />
     </div>
   );

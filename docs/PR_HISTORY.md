@@ -11,7 +11,7 @@
 |------|------|------|
 | Commit（main） | 7 | 已推送 |
 | 等效 PR 文档 | 4 | 见「历史提交」 |
-| 真实 GitHub PR | 2 | 已合并 |
+| 真实 GitHub PR | 5 | 已合并（#6 待合并） |
 
 ---
 
@@ -39,11 +39,43 @@
 | **链接** | https://github.com/asmocen/Chat-Assistant/pull/2 |
 | **分支** | `feature/live2d-four-state` → `main` |
 | **合并日期** | 2026-06-14 |
-| **合并 commit** | `f0e6c03` |
 | **标题** | feat(avatar): enable Live2D four-state mode with octopus clip overlay |
-| **功能说明** | 登录后默认 Live2D 四态；Header 可切 Fallback；Pixi 加载失败自动降级 |
-| **实现思路** | `Live2DAvatar` Pixi 四态 PNG 交叉淡入 + 章鱼发卡图层；`ChatPage` 状态机联动 |
-| **测试方法** | `npm run dev` → 登录 → 四态切换；`npm run build --workspace=client` |
+
+---
+
+### PR #3 — docs(pr): PR history record
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/3 |
+| **合并日期** | 2026-06-14 |
+| **标题** | docs(pr): record merged PR #1 and PR #2 in PR history |
+
+---
+
+### PR #4 — feat(qiniu): Kodo frame cache
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/4 |
+| **分支** | `feature/qiniu-kodo-cache` → `main` |
+| **合并日期** | 2026-06-14 |
+| **标题** | feat(qiniu): implement Kodo stat/upload and CDN URL for frames |
+| **功能说明** | 帧 hash 上传七牛 Kodo，命中 stat 返回 CDN URL 送 LLM |
+| **测试方法** | 配置七牛后同画面第二次对话 kodoHit: true |
+
+---
+
+### PR #5 — feat(cache): semantic cache
+
+| 字段 | 内容 |
+|------|------|
+| **链接** | https://github.com/asmocen/Chat-Assistant/pull/5 |
+| **分支** | `feature/semantic-cache` → `main` |
+| **合并日期** | 2026-06-14 |
+| **标题** | feat(cache): add semantic cache for frame hash and text |
+| **功能说明** | 同帧+同问法秒回，semanticHit: true，不调 LLM |
+| **测试方法** | 持物提问后不换物品再问相同问题 |
 
 ---
 
@@ -101,10 +133,10 @@
 
 | 计划 PR | 分支建议 | 内容 | 优先级 |
 |---------|----------|------|--------|
-| PR-005 | `feature/semantic-cache` | 语义缓存 semanticHit | P0 |
-| PR-006 | `feature/kodo-upload` | 前端 Kodo 直传 | P0 |
+| PR-006 | `feature/kodo-upload` | 前端 Kodo 直传 | P1 |
 | PR-007 | `fix/avatar-octopus-duplicate` | 去除 Live2D 双章鱼叠加 | P2 |
-| PR-008 | `feature/stt-fallback` | 云端 STT 降级 | P1 |
+| PR-008 | `feature/stt-fallback` | 云端 STT 降级 US-12 | P1 |
+| PR-009 | `feature/continuous-voice` | TTS 后自动重启 STT US-9 | P1 |
 
 > 每完成一行，在 GitHub 创建真实 PR 并在此表追加链接。
 

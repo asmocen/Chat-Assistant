@@ -188,7 +188,12 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-export async function checkHealth(): Promise<{ status: string; hasApiKey: boolean; model: string }> {
+export async function checkHealth(): Promise<{
+  status: string;
+  hasApiKey: boolean;
+  model: string;
+  qiniuConfigured?: boolean;
+}> {
   const res = await fetch('/api/health');
   return res.json();
 }
