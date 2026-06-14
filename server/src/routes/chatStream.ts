@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { streamLlm } from '../services/llm.js';
+import {
+  buildCacheKey,
+  getSemanticCache,
+  setSemanticCache,
+} from '../services/semanticCache.js';
 import { resolveImageUrl } from '../services/qiniu.js';
 
 export const chatStreamRouter = Router();
@@ -36,8 +41,26 @@ chatStreamRouter.post('/chat/stream', authMiddleware, async (req, res) => {
   res.flushHeaders();
 
   try {
-    const { imageUrl, kodoHit } = await resolveImageUrl(imageBase64, imageKey);
+    const trimmed = text.trim();
+    const { imageUrl, kodoHit, frameHash } = await resolveImageUrl(imageBase64, imageKey);
     const sentImage = Boolean(!skipImage && (imageUrl || imageBase64));
+    const cacheKey = buildCacheKey(skipImage ? null : frameHash, trimmed);
+    const cached = getSemanticCache(cacheKey);
+
+    if (cached) {
+      sendSse(res, 'meta', {
+        kodoHit,
+        semanticHit: true,
+        sentImage,
+        imageUrl,
+      });
+      sendSse(res, 'done', {
+        reply: cached.reply,
+        usage: cached.usage ?? { total_tokens: 0 },
+      });
+      res.end();
+      return;
+    }
 
     sendSse(res, 'meta', {
       kodoHit,
@@ -48,7 +71,7 @@ chatStreamRouter.post('/chat/stream', authMiddleware, async (req, res) => {
 
     let fullReply = '';
     const stream = streamLlm({
-      text: text.trim(),
+      text: trimmed,
       history,
       username: req.user!.username,
       imageUrl,
@@ -59,10 +82,10 @@ chatStreamRouter.post('/chat/stream', authMiddleware, async (req, res) => {
     while (true) {
       const { value, done } = await stream.next();
       if (done) {
-        sendSse(res, 'done', {
-          reply: fullReply.trim() || '抱歉，我暂时无法回答。',
-          usage: value ?? { total_tokens: undefined },
-        });
+        const reply = fullReply.trim() || '抱歉，我暂时无法回答。';
+        const usage = value ?? { total_tokens: undefined };
+        setSemanticCache(cacheKey, { reply, usage });
+        sendSse(res, 'done', { reply, usage });
         break;
       }
       fullReply += value;
